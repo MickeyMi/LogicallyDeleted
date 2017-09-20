@@ -13,8 +13,8 @@ import pro.mickey.logically.deleted.mapper.MickeyLogicallyDeletedMapper;
 import pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted;
 
 @RestController
-@RequestMapping("/rest/logicallyDeleted")
-public class LogicallyDeletedController {
+@RequestMapping("/rest/Mybatis/logicallyDeleted")
+public class MybatisLogicallyDeletedController {
 
 	@Autowired
 	private MickeyLogicallyDeletedMapper mickeyLogicallyDeletedMapper;

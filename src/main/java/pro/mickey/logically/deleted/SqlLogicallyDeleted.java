@@ -1,6 +1,5 @@
 package pro.mickey.logically.deleted;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import com.alibaba.druid.sql.SQLUtils;
@@ -30,30 +29,31 @@ public class SqlLogicallyDeleted {
 		this.sql_type = sql_type;
 	}
 
-	/**
-	 * delete TO update
-	 * 
-	 * @param sql
-	 * @return
-	 */
-	public String deleteToUpdate(String sql) {
+	public String logicallyDeleted(String sql) {
 		SQLStatementParser parser = SQLParserUtils.createSQLStatementParser(sql, sql_type);
 		List<SQLStatement> stmtList = parser.parseStatementList();
 		SQLStatement stmt = stmtList.get(0);
+
+		// 是删除语句
 		if (stmt instanceof SQLDeleteStatement) {
 			SQLDeleteStatement sstmt = (SQLDeleteStatement) stmt;
-			sql = deleteToUpdate(sstmt);
+			return deleteToUpdate(sstmt);
+		}
+		// 是查询语句
+		else if (stmt instanceof SQLSelectStatement) {
+			SQLSelectStatement sstmt = (SQLSelectStatement) stmt;
+			return selectAddWhere(sstmt);
 		}
 		return sql;
 	}
 
 	/**
-	 * 删除语句变更新字段语�?
+	 * 删除语句变更新字段语�?
 	 * 
 	 * @param buf
 	 * @param deleteStatement
 	 */
-	public String deleteToUpdate(SQLDeleteStatement deleteStatement) {
+	private String deleteToUpdate(SQLDeleteStatement deleteStatement) {
 		StringBuffer buf = new StringBuffer();
 		buf.append("UPDATE ");
 
@@ -89,55 +89,38 @@ public class SqlLogicallyDeleted {
 	}
 
 	/**
-	 * 给sql加上where
-	 * 
-	 * @param sql
-	 * @return
-	 */
-	public String addWhere(String sql) {
-		// parser得到AST
-		SQLStatementParser parser = SQLParserUtils.createSQLStatementParser(sql, sql_type);
-		List<SQLStatement> stmtList = parser.parseStatementList();
-		SQLStatement stmt = stmtList.get(0);
-
-		if (stmt instanceof SQLSelectStatement) {
-			SQLSelectStatement sstmt = (SQLSelectStatement) stmt;
-			SQLSelect sqlselect = sstmt.getSelect();
-			SQLSelectQueryBlock query = (SQLSelectQueryBlock) sqlselect.getQuery();
-			if (query == null || query.getFrom() == null)
-				return sql;
-			selectAddWhere(query);
-			return sstmt.toString();
-		}
-		return sql;
-	}
-
-	/**
 	 * 给Select加上删除where
 	 * 
 	 * @param tableFrom
 	 * @param queryBlock
 	 */
-	public void selectAddWhere(SQLSelectQueryBlock queryBlock) {
-		List<String> list = getFrom(queryBlock.getFrom());
-		if (list != null) {
-			for (String as : list) {
-				StringBuffer whereSql = new StringBuffer();
-				if (as != null && as.length() > 0) {
-					whereSql.append(as);
-					whereSql.append(".");
+	private String selectAddWhere(SQLSelectStatement sstmt) {
+
+		SQLSelect sqlselect = sstmt.getSelect();
+		SQLSelectQueryBlock query = (SQLSelectQueryBlock) sqlselect.getQuery();
+
+		if (query != null && query.getFrom() != null) {
+			List<String> list = getFrom(query.getFrom());
+			if (list != null) {
+				for (String as : list) {
+					StringBuffer whereSql = new StringBuffer();
+					if (as != null && as.length() > 0) {
+						whereSql.append(as);
+						whereSql.append(".");
+					}
+					whereSql.append(variable);
+					whereSql.append(" = ");
+					whereSql.append(variable_delete_not);
+					SQLExpr expr = new SQLExprParser(whereSql.toString(), sql_type).expr();
+					query.addWhere(expr);
 				}
-				whereSql.append(variable);
-				whereSql.append(" = ");
-				whereSql.append(variable_delete_not);
-				SQLExpr expr = new SQLExprParser(whereSql.toString(), sql_type).expr();
-				queryBlock.addWhere(expr);
 			}
 		}
+		return sstmt.toString();
 	}
 
 	/**
-	 * 查询from的表 �? as值，没有返回NUll
+	 * 查询from的表 �? as值，没有返回NUll
 	 * 
 	 * @param from
 	 * @return

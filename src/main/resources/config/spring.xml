@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+
+	<!-- spring data jpa 物理删除拦截 -->
+	<bean class="pro.mickey.logically.deleted.spring.data.SqlLogicallyDeletedSpringDataInterceptor">
+		<!-- 删除字段 -->
+		<property name="variable" value="is_delete" />
+		<!-- 删除值 -->
+		<property name="variableDelete" value="true" />
+		<!-- 未删除值 -->
+		<property name="variableDeleteNot" value="false" />
+		<!-- 数据库类型 -->
+		<property name="sqlType" value="mysql" />
+	</bean>
+
+
+
 	<!-- 引入jdbc配置文件 -->
 	<context:property-placeholder location="classpath:config/jdbc.properties" />
-
 	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
 		<!-- 基本属性 url、user、password -->
 		<property name="url" value="${jdbc_url}" />
@@ -51,4 +69,44 @@
 		<!-- 如果扫描多个包，每个包中间用,号分隔，不能使用通配符 -->
 		<property name="basePackage" value="pro.mickey.logically.deleted.mapper" />
 	</bean>
+
+
+
+
+
+	<!-- spring data jpa start -->
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+		</property>
+		<property name="packagesToScan" value="pro.mickey.logically.deleted.repository" />
+
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<!-- 公共字段处理拦截器 -->
+				<prop key="hibernate.ejb.interceptor">pro.mickey.logically.deleted.spring.data.SqlLogicallyDeletedSpringDataInterceptor</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<!--配置支持注解的事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- 配置spring data -->
+	<jpa:repositories base-package="pro.mickey.logically.deleted.repository" entity-manager-factory-ref="entityManagerFactory" />
+
+	<context:component-scan base-package="pro.mickey.logically.deleted.repository" />
+	<!-- spring data jpa end -->
+
 </beans>

@@ -1,6 +1,5 @@
 package pro.mickey.logically.deleted.mybatis;
 
-
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
 
@@ -13,7 +12,6 @@ import pro.mickey.util.ReflectUtil;
 public class SqlLogicallyDeletedDynamicSqlSource extends SqlLogicallyDeleted implements SqlSource {
 
 	private SqlSource source;
-	private boolean isSelect;
 
 	/**
 	 * @param source
@@ -29,10 +27,9 @@ public class SqlLogicallyDeletedDynamicSqlSource extends SqlLogicallyDeleted imp
 	 * @param sql_type
 	 *            数据库类�?
 	 */
-	public SqlLogicallyDeletedDynamicSqlSource(SqlSource source, boolean isSelect, String variable, String variable_delete, String variable_delete_not, String sql_type) {
+	public SqlLogicallyDeletedDynamicSqlSource(SqlSource source, String variable, String variable_delete, String variable_delete_not, String sql_type) {
 		super(variable, variable_delete, variable_delete_not, sql_type);
 		this.source = source;
-		this.isSelect = isSelect;
 
 	}
 
@@ -44,10 +41,7 @@ public class SqlLogicallyDeletedDynamicSqlSource extends SqlLogicallyDeleted imp
 	@Override
 	public BoundSql getBoundSql(Object parameterObject) {
 		BoundSql boundSql = source.getBoundSql(parameterObject);
-		if (isSelect)
-			ReflectUtil.setFieldValue(boundSql, "sql", addWhere(boundSql.getSql()));
-		else
-			ReflectUtil.setFieldValue(boundSql, "sql", deleteToUpdate(boundSql.getSql()));
+		ReflectUtil.setFieldValue(boundSql, "sql", logicallyDeleted(boundSql.getSql()));
 		return boundSql;
 	}
 }

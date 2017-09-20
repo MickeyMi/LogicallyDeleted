@@ -29,12 +29,8 @@ public class SqlLogicallyDeletedInterceptor implements Interceptor {
 	@Override
 	public Object intercept(Invocation invocation) throws Throwable {
 		MappedStatement mappedStatement = (MappedStatement) invocation.getArgs()[0];
-		String methodName = invocation.getMethod().getName();
 		{
-			boolean isQuery = false;
-			if (methodName.equalsIgnoreCase("query"))
-				isQuery = true;
-			SqlLogicallyDeletedDynamicSqlSource deletedDynamicSqlSource = new SqlLogicallyDeletedDynamicSqlSource(mappedStatement.getSqlSource(), isQuery, variable, variableDelete, variableDeleteNot, sqlType);
+			SqlLogicallyDeletedDynamicSqlSource deletedDynamicSqlSource = new SqlLogicallyDeletedDynamicSqlSource(mappedStatement.getSqlSource(), variable, variableDelete, variableDeleteNot, sqlType);
 			ReflectUtil.setFieldValue(mappedStatement, "sqlSource", deletedDynamicSqlSource);
 		}
 		return invocation.proceed();
