@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pro.mickey.logically.deleted.mapper.MickeyLogicallyDeletedMapper">
+	<resultMap id="BaseResultMap" type="pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted">
+		<id column="logically_deleted_id" jdbcType="INTEGER" property="logicallyDeletedId" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="is_delete" jdbcType="BIT" property="isDelete" />
+		<result column="create_date" jdbcType="TIMESTAMP" property="createDate" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		logically_deleted_id, name, is_delete, create_date
+	</sql>
+
+	<select id="findAll" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from logically_deleted
+	</select>
+
+	<select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from logically_deleted
+		where logically_deleted_id = #{logicallyDeletedId,jdbcType=INTEGER}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from logically_deleted
+		where logically_deleted_id = #{logicallyDeletedId,jdbcType=INTEGER}
+	</delete>
+	<insert id="insert" parameterType="pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted">
+		insert into logically_deleted (logically_deleted_id, name, is_delete,
+		create_date)
+		values (#{logicallyDeletedId,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR}, #{isDelete,jdbcType=BIT},
+		#{createDate,jdbcType=TIMESTAMP})
+	</insert>
+	<insert id="insertSelective" parameterType="pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted">
+		insert into logically_deleted
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			logically_deleted_id,
+			<if test="name != null">
+				name,
+			</if>
+			<if test="isDelete != null">
+				is_delete,
+			</if>
+			<if test="createDate != null">
+				create_date,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			#{logicallyDeletedId,jdbcType=INTEGER},
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				#{isDelete,jdbcType=BIT},
+			</if>
+			<if test="createDate != null">
+				#{createDate,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted">
+		update logically_deleted
+		<set>
+			<if test="name != null">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="isDelete != null">
+				is_delete = #{isDelete,jdbcType=BIT},
+			</if>
+			<if test="createDate != null">
+				create_date = #{createDate,jdbcType=TIMESTAMP},
+			</if>
+		</set>
+		where logically_deleted_id = #{logicallyDeletedId,jdbcType=INTEGER}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="pro.mickey.logically.deleted.mapper.model.MickeyLogicallyDeleted">
+		update logically_deleted
+		set name = #{name,jdbcType=VARCHAR},
+		is_delete = #{isDelete,jdbcType=BIT},
+		create_date = #{createDate,jdbcType=TIMESTAMP}
+		where logically_deleted_id =
+		#{logicallyDeletedId,jdbcType=INTEGER}
+	</update>
+</mapper>
