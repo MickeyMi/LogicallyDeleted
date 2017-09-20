@@ -27,6 +27,7 @@ public class SqlLogicallyDeleted {
 		this.variable_delete = variable_delete;
 		this.variable_delete_not = variable_delete_not;
 		this.sql_type = sql_type;
+		
 	}
 
 	public String logicallyDeleted(String sql) {
