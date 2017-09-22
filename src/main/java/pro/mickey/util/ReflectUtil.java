@@ -83,8 +83,10 @@ public class ReflectUtil {
 	 * 调用对象方法返回
 	 * 
 	 * @param obj
+	 *            需要调用的对象
 	 * @param methodNmae
-	 * @return
+	 *            方法名称
+	 * @return 调用方法返回的值
 	 */
 	public static Object transferMethod(Object obj, String methodNmae) {
 		try {
